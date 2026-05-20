@@ -1,0 +1,47 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data and generated artifacts
+data/raw/
+data/interim/*
+data/processed/*
+reports/figures/*
+reports/tables/*
+reports/drafts/*
+
+# Local-only planning notes
+docs/
+
+# Keep directory placeholders
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!reports/figures/.gitkeep
+!reports/tables/.gitkeep
+!reports/drafts/.gitkeep
+
+# Local config/secrets
+.env
+*.log
+
+preliminary_knowledge_base/
+repo_layout.md
+
+AGENTS.md
