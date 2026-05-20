@@ -1,0 +1,6 @@
+table_name,column,row_count,missing_count,nonnumeric_count,min,max,below_warning_min_count,above_warning_max_count,after_max_module_length_count,warning
+assessments,date,206,11,0,12.0,261.0,0,0,0,
+studentRegistration,date_registration,32593,45,0,-322.0,167.0,0,0,0,
+studentRegistration,date_unregistration,32593,22521,0,-365.0,444.0,0,0,1,1 values after the maximum module length
+studentAssessment,date_submitted,173912,0,0,-11.0,608.0,0,0,73,73 values after the maximum module length
+studentVle,date,10655280,0,0,-25.0,269.0,0,0,0,

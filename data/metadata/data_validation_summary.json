@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "critical_failure_count": 0,
+  "warning_count": 2,
+  "critical_failures": [],
+  "warnings": [
+    "studentRegistration.date_unregistration: 1 values after the maximum module length",
+    "studentAssessment.date_submitted: 73 values after the maximum module length"
+  ]
+}

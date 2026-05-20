@@ -1,0 +1,8 @@
+table_name,filename,found,source_type,source_path,archive_member,status
+courses,courses.csv,True,zip,/Users/shreyashreddy/Desktop/UCSD SP26/DSC 245/oulad-causal-inference/oulad-causal-inference/data/raw/anonymisedData.zip,courses.csv,found
+assessments,assessments.csv,True,zip,/Users/shreyashreddy/Desktop/UCSD SP26/DSC 245/oulad-causal-inference/oulad-causal-inference/data/raw/anonymisedData.zip,assessments.csv,found
+vle,vle.csv,True,zip,/Users/shreyashreddy/Desktop/UCSD SP26/DSC 245/oulad-causal-inference/oulad-causal-inference/data/raw/anonymisedData.zip,vle.csv,found
+studentInfo,studentInfo.csv,True,zip,/Users/shreyashreddy/Desktop/UCSD SP26/DSC 245/oulad-causal-inference/oulad-causal-inference/data/raw/anonymisedData.zip,studentInfo.csv,found
+studentRegistration,studentRegistration.csv,True,zip,/Users/shreyashreddy/Desktop/UCSD SP26/DSC 245/oulad-causal-inference/oulad-causal-inference/data/raw/anonymisedData.zip,studentRegistration.csv,found
+studentAssessment,studentAssessment.csv,True,zip,/Users/shreyashreddy/Desktop/UCSD SP26/DSC 245/oulad-causal-inference/oulad-causal-inference/data/raw/anonymisedData.zip,studentAssessment.csv,found
+studentVle,studentVle.csv,True,zip,/Users/shreyashreddy/Desktop/UCSD SP26/DSC 245/oulad-causal-inference/oulad-causal-inference/data/raw/anonymisedData.zip,studentVle.csv,found

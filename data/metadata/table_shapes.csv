@@ -1,0 +1,8 @@
+table_name,loaded,row_count,column_count,expected_column_count
+courses,True,22,3,3
+assessments,True,206,6,6
+vle,True,6364,6,6
+studentInfo,True,32593,12,12
+studentRegistration,True,32593,5,5
+studentAssessment,True,173912,5,5
+studentVle,True,10655280,6,6

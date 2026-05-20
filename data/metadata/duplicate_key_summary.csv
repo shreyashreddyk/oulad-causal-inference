@@ -1,0 +1,8 @@
+table_name,key_columns,checked,duplicate_rows,duplicate_groups,missing_key_columns,status
+courses,"code_module, code_presentation",True,0,0,,passed
+assessments,id_assessment,True,0,0,,passed
+vle,id_site,True,0,0,,passed
+studentInfo,"code_module, code_presentation, id_student",True,0,0,,passed
+studentRegistration,"code_module, code_presentation, id_student",True,0,0,,passed
+studentAssessment,"id_assessment, id_student",True,0,0,,passed
+studentVle,,False,0,0,,not_applicable

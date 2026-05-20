@@ -1,0 +1,64 @@
+table_name,column,category,count,fraction
+assessments,assessment_type,CMA,76,0.36893203883495146
+assessments,assessment_type,Exam,24,0.11650485436893204
+assessments,assessment_type,TMA,106,0.5145631067961165
+vle,activity_type,dataplus,28,0.0043997485857950975
+vle,activity_type,dualpane,20,0.0031426775612822125
+vle,activity_type,externalquiz,26,0.004085480829666876
+vle,activity_type,folder,2,0.00031426775612822125
+vle,activity_type,forumng,194,0.03048397234443746
+vle,activity_type,glossary,21,0.003299811439346323
+vle,activity_type,homepage,22,0.0034569453174104338
+vle,activity_type,htmlactivity,4,0.0006285355122564425
+vle,activity_type,oucollaborate,82,0.012884978001257071
+vle,activity_type,oucontent,996,0.1565053425518542
+vle,activity_type,ouelluminate,21,0.003299811439346323
+vle,activity_type,ouwiki,49,0.0076995600251414205
+vle,activity_type,page,102,0.016027655562539284
+vle,activity_type,questionnaire,61,0.009585166561910748
+vle,activity_type,quiz,127,0.01995600251414205
+vle,activity_type,repeatactivity,5,0.0007856693903205531
+vle,activity_type,resource,2660,0.4179761156505343
+vle,activity_type,sharedsubpage,3,0.0004714016341923319
+vle,activity_type,subpage,1055,0.16577624135763672
+vle,activity_type,url,886,0.139220615964802
+studentInfo,gender,F,14718,0.4515693553830577
+studentInfo,gender,M,17875,0.5484306446169422
+studentInfo,region,East Anglian Region,3340,0.10247599177737551
+studentInfo,region,East Midlands Region,2365,0.07256159298008776
+studentInfo,region,Ireland,1184,0.0363268186420397
+studentInfo,region,London Region,3216,0.09867149387905379
+studentInfo,region,North Region,1823,0.05593225539226214
+studentInfo,region,North Western Region,2906,0.08916024913324946
+studentInfo,region,Scotland,3446,0.10572822385174731
+studentInfo,region,South East Region,2111,0.06476850857546099
+studentInfo,region,South Region,3092,0.09486699598073206
+studentInfo,region,South West Region,2436,0.07473997484122358
+studentInfo,region,Wales,2086,0.06400147270886386
+studentInfo,region,West Midlands Region,2582,0.07921946430215077
+studentInfo,region,Yorkshire Region,2006,0.06154695793575308
+studentInfo,highest_education,A Level or Equivalent,14045,0.4309207498542632
+studentInfo,highest_education,HE Qualification,4730,0.1451231859601755
+studentInfo,highest_education,Lower Than A Level,13158,0.4037063173073973
+studentInfo,highest_education,No Formal quals,347,0.010646457828368055
+studentInfo,highest_education,Post Graduate Qualification,313,0.009603289049795969
+studentInfo,imd_band,0-10%,3311,0.10158623017212284
+studentInfo,imd_band,10-20,3516,0.10787592427821925
+studentInfo,imd_band,20-30%,3654,0.11210996226183537
+studentInfo,imd_band,30-40%,3539,0.1085815972754886
+studentInfo,imd_band,40-50%,3256,0.09989875126560918
+studentInfo,imd_band,50-60%,3124,0.09584880188997638
+studentInfo,imd_band,60-70%,2905,0.08912956769858559
+studentInfo,imd_band,70-80%,2879,0.08833185039732458
+studentInfo,imd_band,80-90%,2762,0.08474212254165005
+studentInfo,imd_band,90-100%,2536,0.07780811830761207
+studentInfo,imd_band,<MISSING>,1111,0.03408707391157611
+studentInfo,age_band,0-35,22944,0.7039548369281747
+studentInfo,age_band,35-55,9433,0.2894179731844261
+studentInfo,age_band,55<=,216,0.0066271898873991346
+studentInfo,disability,N,29429,0.9029239407234683
+studentInfo,disability,Y,3164,0.09707605927653178
+studentInfo,final_result,Distinction,3024,0.09278065842358789
+studentInfo,final_result,Fail,7052,0.2163654772497162
+studentInfo,final_result,Pass,12361,0.37925321388028105
+studentInfo,final_result,Withdrawn,10156,0.3116006504464149

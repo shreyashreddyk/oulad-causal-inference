@@ -1,0 +1,8 @@
+table_name,loaded,expected_columns,actual_columns,missing_columns,extra_columns,column_order_matches,is_valid
+courses,True,"code_module, code_presentation, module_presentation_length","code_module, code_presentation, module_presentation_length",,,True,True
+assessments,True,"code_module, code_presentation, id_assessment, assessment_type, date, weight","code_module, code_presentation, id_assessment, assessment_type, date, weight",,,True,True
+vle,True,"id_site, code_module, code_presentation, activity_type, week_from, week_to","id_site, code_module, code_presentation, activity_type, week_from, week_to",,,True,True
+studentInfo,True,"code_module, code_presentation, id_student, gender, region, highest_education, imd_band, age_band, num_of_prev_attempts, studied_credits, disability, final_result","code_module, code_presentation, id_student, gender, region, highest_education, imd_band, age_band, num_of_prev_attempts, studied_credits, disability, final_result",,,True,True
+studentRegistration,True,"code_module, code_presentation, id_student, date_registration, date_unregistration","code_module, code_presentation, id_student, date_registration, date_unregistration",,,True,True
+studentAssessment,True,"id_assessment, id_student, date_submitted, is_banked, score","id_assessment, id_student, date_submitted, is_banked, score",,,True,True
+studentVle,True,"code_module, code_presentation, id_student, id_site, date, sum_click","code_module, code_presentation, id_student, id_site, date, sum_click",,,True,True
