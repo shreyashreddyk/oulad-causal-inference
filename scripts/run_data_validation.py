@@ -4,27 +4,32 @@ from __future__ import annotations
 
 import argparse
 from datetime import date
+import logging
 from pathlib import Path
 import sys
+from typing import Sequence
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from oulad_causal.config import ProjectPaths
 from oulad_causal.io import OULAD_TABLE_SPECS, load_oulad_tables, locate_oulad_tables, resolve_raw_source
+from oulad_causal.logging_utils import add_log_level_argument, configure_logging
 from oulad_causal.validation import validate_oulad_raw_data, write_validation_artifacts
 
 
+LOGGER = logging.getLogger(__name__)
 GENERATED_AUDIT_START = "<!-- BEGIN GENERATED DATA AUDIT -->"
 GENERATED_AUDIT_END = "<!-- END GENERATED DATA AUDIT -->"
 GENERATED_DECISION_START = "<!-- BEGIN GENERATED DATA VALIDATION DECISION -->"
 GENERATED_DECISION_END = "<!-- END GENERATED DATA VALIDATION DECISION -->"
 
 
-def main() -> None:
+def main(argv: Sequence[str] | None = None) -> int:
     """Run data validation, write metadata artifacts, and refresh audit docs."""
 
-    args = parse_args()
+    args = parse_args(argv)
+    configure_logging(args.log_level)
     paths = ProjectPaths.from_overrides(
         raw_data_dir=args.raw_data_dir,
         metadata_dir=args.metadata_dir,
@@ -40,19 +45,20 @@ def main() -> None:
     refresh_data_dictionary(paths.docs_dir / "data_dictionary.md", result)
     refresh_decisions_log(paths.docs_dir / "decisions_log.md", result, raw_source, paths.raw_data_dir)
 
-    print(f"Wrote validation metadata to {paths.metadata_dir}")
-    print(f"Updated {paths.docs_dir / 'data_dictionary.md'}")
-    print(f"Updated {paths.docs_dir / 'decisions_log.md'}")
+    LOGGER.info("Wrote validation metadata to %s", paths.metadata_dir)
+    LOGGER.info("Updated %s", paths.docs_dir / "data_dictionary.md")
+    LOGGER.info("Updated %s", paths.docs_dir / "decisions_log.md")
     if result.critical_failures:
-        print("Critical validation failures:", file=sys.stderr)
+        LOGGER.error("Critical validation failures:")
         for failure in result.critical_failures:
-            print(f"- {failure}", file=sys.stderr)
+            LOGGER.error("- %s", failure)
 
     if args.strict and result.critical_failures:
-        raise SystemExit(1)
+        return 1
+    return 0
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--raw-source", help="Explicit OULAD archive or extracted CSV directory.")
     parser.add_argument("--raw-data-dir", help="Raw data directory. Defaults to data/raw or OULAD_RAW_DATA_DIR.")
@@ -71,7 +77,8 @@ def parse_args() -> argparse.Namespace:
         action="store_false",
         help="Write outputs but exit zero even when critical validation failures are found.",
     )
-    return parser.parse_args()
+    add_log_level_argument(parser)
+    return parser.parse_args(argv)
 
 
 def refresh_data_dictionary(path: Path, result) -> None:
@@ -209,4 +216,4 @@ def _resolve_optional_path(value: str | None) -> Path | None:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

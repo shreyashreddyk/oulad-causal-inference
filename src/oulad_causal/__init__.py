@@ -8,6 +8,8 @@ __all__ = [
     "estimation",
     "features",
     "io",
+    "logging_utils",
+    "pipeline",
     "robustness",
     "utils",
     "validation",

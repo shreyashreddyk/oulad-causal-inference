@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 from pathlib import Path
 import sys
+from typing import Sequence
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 os.environ.setdefault("MPLCONFIGDIR", "/private/tmp/oulad_causal_mpl_cache")
@@ -15,9 +17,13 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 from oulad_causal.config import DOCS_DIR, FIGURES_DIR, PROCESSED_DATA_DIR
 from oulad_causal.dag import ANALYTIC_COHORT_PATH
 from oulad_causal.estimation import EstimationConfig, run_estimation_pipeline, write_estimation_artifacts
+from oulad_causal.logging_utils import add_log_level_argument, configure_logging
 
 
-def parse_args() -> argparse.Namespace:
+LOGGER = logging.getLogger(__name__)
+
+
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     """Parse command-line arguments."""
 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -27,13 +33,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--docs-dir", type=Path, default=DOCS_DIR)
     parser.add_argument("--seed", type=int, default=245)
     parser.add_argument("--disable-matching", action="store_true")
-    return parser.parse_args()
+    add_log_level_argument(parser)
+    return parser.parse_args(argv)
 
 
-def main() -> None:
+def main(argv: Sequence[str] | None = None) -> int:
     """Run the deterministic primary estimation pipeline."""
 
-    args = parse_args()
+    args = parse_args(argv)
+    configure_logging(args.log_level)
     config = EstimationConfig(
         cohort_path=args.cohort_path,
         processed_dir=args.processed_dir,
@@ -45,10 +53,11 @@ def main() -> None:
     result = run_estimation_pipeline(config)
     paths = write_estimation_artifacts(result, config=config)
 
-    print("Wrote estimation artifacts:")
+    LOGGER.info("Wrote estimation artifacts:")
     for name, path in paths.items():
-        print(f"- {name}: {path}")
+        LOGGER.info("- %s: %s", name, path)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

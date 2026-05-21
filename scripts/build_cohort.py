@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 from pathlib import Path
 import sys
+from typing import Sequence
 
 import pandas as pd
 
@@ -23,14 +25,20 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from oulad_causal.cohort import CohortConfig, build_analytic_cohort
 from oulad_causal.config import FIGURES_DIR, PROCESSED_DATA_DIR, ProjectPaths
+from oulad_causal.dag import write_dag_artifacts
 from oulad_causal.features import treatment_column_name
 from oulad_causal.io import load_oulad_tables
+from oulad_causal.logging_utils import add_log_level_argument, configure_logging
 
 
-def main() -> None:
+LOGGER = logging.getLogger(__name__)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
     """Build the analytic cohort and save reproducible artifacts."""
 
-    args = parse_args()
+    args = parse_args(argv)
+    configure_logging(args.log_level)
     paths = ProjectPaths.from_overrides(raw_data_dir=args.raw_data_dir)
     raw_source = Path(args.raw_source).expanduser().resolve() if args.raw_source else None
     processed_dir = _resolve_output_dir(args.processed_dir, PROCESSED_DATA_DIR)
@@ -67,21 +75,31 @@ def main() -> None:
         window_days=config.primary_window,
         figures_path=figures_dir / "treatment_prevalence.png",
     )
+    dag_paths = write_dag_artifacts(
+        spec_path=processed_dir / "primary_dag.yaml",
+        figure_path=figures_dir / "primary_dag.png",
+        availability_path=processed_dir / "dag_variable_availability.csv",
+        cohort_path=cohort_path,
+    )
 
-    print(f"Wrote analytic cohort to {cohort_path}")
-    print(f"Wrote cohort flow table to {flow_path}")
-    print(f"Wrote cohort summary to {summary_path}")
-    print(f"Wrote figures to {figures_dir}")
+    LOGGER.info("Wrote analytic cohort to %s", cohort_path)
+    LOGGER.info("Wrote cohort flow table to %s", flow_path)
+    LOGGER.info("Wrote cohort summary to %s", summary_path)
+    LOGGER.info("Wrote cohort figures to %s", figures_dir)
+    for name, path in dag_paths.items():
+        LOGGER.info("Wrote DAG artifact %s to %s", name, path)
+    return 0
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--raw-source", help="Explicit OULAD archive or extracted CSV directory.")
     parser.add_argument("--raw-data-dir", help="Raw data directory. Defaults to data/raw or OULAD_RAW_DATA_DIR.")
     parser.add_argument("--processed-dir", help="Directory for processed cohort outputs.")
     parser.add_argument("--figures-dir", help="Directory for cohort diagnostic figures.")
     parser.add_argument("--primary-window", type=int, default=14, help="Primary treatment window in days.")
-    return parser.parse_args()
+    add_log_level_argument(parser)
+    return parser.parse_args(argv)
 
 
 def write_cohort_flow_plot(flow_table: pd.DataFrame, figures_path: Path) -> None:
@@ -136,4 +154,4 @@ def _resolve_output_dir(value: str | None, default: Path) -> Path:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

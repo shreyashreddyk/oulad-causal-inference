@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import os
+import argparse
+import logging
 from pathlib import Path
 import sys
+from typing import Sequence
 
 import pandas as pd
 
@@ -14,6 +17,7 @@ os.environ.setdefault("XDG_CACHE_HOME", "/private/tmp/oulad_causal_xdg_cache")
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from oulad_causal.config import DOCS_DIR, FIGURES_DIR, PROCESSED_DATA_DIR, REPORTS_DIR, TABLES_DIR
+from oulad_causal.logging_utils import add_log_level_argument, configure_logging
 from oulad_causal.viz import (
     cohort_flow_report_table,
     ensure_report_dirs,
@@ -25,84 +29,112 @@ from oulad_causal.viz import (
 )
 
 
-COHORT_FLOW_SOURCE = PROCESSED_DATA_DIR / "cohort_flow_table.csv"
-COHORT_SOURCE = PROCESSED_DATA_DIR / "oulad_analytic_cohort.parquet"
-DISCOVERY_COMPARISON_SOURCE = PROCESSED_DATA_DIR / "discovery_hand_dag_comparison.csv"
-DISCOVERY_STABILITY_SOURCE = PROCESSED_DATA_DIR / "discovery_stability_edges.csv"
-EFFECT_ESTIMATES_SOURCE = PROCESSED_DATA_DIR / "effect_estimates_main.csv"
-ROBUSTNESS_WINDOW_SOURCE = TABLES_DIR / "robustness_window_threshold_summary.csv"
-ROBUSTNESS_SUBGROUP_SOURCE = TABLES_DIR / "robustness_subgroup_placebo_sensitivity_summary.csv"
-PRIMARY_DAG_FIGURE = FIGURES_DIR / "primary_dag.png"
-OVERLAP_FIGURE = FIGURES_DIR / "overlap_plot.png"
-
-FINAL_ARTIFACTS = {
-    "dag_figure": FIGURES_DIR / "primary_dag.png",
-    "cohort_flow_table": TABLES_DIR / "cohort_flow.csv",
-    "treatment_prevalence_figure": FIGURES_DIR / "treatment_prevalence.png",
-    "discovery_comparison_figure": FIGURES_DIR / "discovery_comparison.png",
-    "overlap_plot": FIGURES_DIR / "overlap_plot.png",
-    "main_effect_estimates_table": TABLES_DIR / "main_effect_estimates.csv",
-    "robustness_summary_table": TABLES_DIR / "robustness_summary.csv",
-    "subgroup_summary_figure": FIGURES_DIR / "subgroup_summary.png",
-    "results_walkthrough": REPORTS_DIR / "drafts" / "results_walkthrough.md",
-    "presentation_asset_plan": DOCS_DIR / "presentation_asset_plan.md",
-}
+LOGGER = logging.getLogger(__name__)
 
 
-def main() -> None:
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    """Parse command-line arguments."""
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--processed-dir", type=Path, default=PROCESSED_DATA_DIR)
+    parser.add_argument("--tables-dir", type=Path, default=TABLES_DIR)
+    parser.add_argument("--figures-dir", type=Path, default=FIGURES_DIR)
+    parser.add_argument("--reports-dir", type=Path, default=REPORTS_DIR)
+    parser.add_argument("--docs-dir", type=Path, default=DOCS_DIR)
+    add_log_level_argument(parser)
+    return parser.parse_args(argv)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
     """Build deterministic report assets from existing saved outputs."""
 
-    ensure_report_dirs()
+    args = parse_args(argv)
+    configure_logging(args.log_level)
+    source_paths = _source_paths(args)
+    final_artifacts = _final_artifacts(args)
+    ensure_report_dirs(
+        reports_dir=args.reports_dir,
+        figures_dir=args.figures_dir,
+        tables_dir=args.tables_dir,
+    )
     _require_inputs(
         [
-            COHORT_FLOW_SOURCE,
-            COHORT_SOURCE,
-            DISCOVERY_COMPARISON_SOURCE,
-            DISCOVERY_STABILITY_SOURCE,
-            EFFECT_ESTIMATES_SOURCE,
-            ROBUSTNESS_WINDOW_SOURCE,
-            ROBUSTNESS_SUBGROUP_SOURCE,
-            PRIMARY_DAG_FIGURE,
-            OVERLAP_FIGURE,
+            source_paths["cohort_flow"],
+            source_paths["cohort"],
+            source_paths["discovery_comparison"],
+            source_paths["discovery_stability"],
+            source_paths["effect_estimates"],
+            source_paths["robustness_window"],
+            source_paths["robustness_subgroup"],
+            source_paths["primary_dag_figure"],
+            source_paths["overlap_figure"],
         ]
     )
 
-    cohort_flow = pd.read_csv(COHORT_FLOW_SOURCE)
-    cohort = pd.read_parquet(COHORT_SOURCE)
-    discovery_comparison = pd.read_csv(DISCOVERY_COMPARISON_SOURCE)
-    discovery_stability = pd.read_csv(DISCOVERY_STABILITY_SOURCE)
-    effect_estimates = pd.read_csv(EFFECT_ESTIMATES_SOURCE)
-    robustness_window = pd.read_csv(ROBUSTNESS_WINDOW_SOURCE)
-    robustness_subgroup = pd.read_csv(ROBUSTNESS_SUBGROUP_SOURCE)
+    cohort_flow = pd.read_csv(source_paths["cohort_flow"])
+    cohort = pd.read_parquet(source_paths["cohort"])
+    discovery_comparison = pd.read_csv(source_paths["discovery_comparison"])
+    discovery_stability = pd.read_csv(source_paths["discovery_stability"])
+    effect_estimates = pd.read_csv(source_paths["effect_estimates"])
+    robustness_window = pd.read_csv(source_paths["robustness_window"])
+    robustness_subgroup = pd.read_csv(source_paths["robustness_subgroup"])
 
     paths: dict[str, Path] = {}
-    paths["dag_figure"] = PRIMARY_DAG_FIGURE
-    paths["overlap_plot"] = OVERLAP_FIGURE
-    cohort_flow_report_table(cohort_flow, FINAL_ARTIFACTS["cohort_flow_table"])
-    paths["cohort_flow_table"] = FINAL_ARTIFACTS["cohort_flow_table"]
-    write_treatment_prevalence_figure(cohort, FINAL_ARTIFACTS["treatment_prevalence_figure"])
-    paths["treatment_prevalence_figure"] = FINAL_ARTIFACTS["treatment_prevalence_figure"]
+    paths["dag_figure"] = source_paths["primary_dag_figure"]
+    paths["overlap_plot"] = source_paths["overlap_figure"]
+    cohort_flow_report_table(cohort_flow, final_artifacts["cohort_flow_table"])
+    paths["cohort_flow_table"] = final_artifacts["cohort_flow_table"]
+    write_treatment_prevalence_figure(cohort, final_artifacts["treatment_prevalence_figure"])
+    paths["treatment_prevalence_figure"] = final_artifacts["treatment_prevalence_figure"]
     write_discovery_comparison_figure(
         discovery_comparison,
         discovery_stability,
-        FINAL_ARTIFACTS["discovery_comparison_figure"],
+        final_artifacts["discovery_comparison_figure"],
     )
-    paths["discovery_comparison_figure"] = FINAL_ARTIFACTS["discovery_comparison_figure"]
-    main_effect_report_table(effect_estimates, FINAL_ARTIFACTS["main_effect_estimates_table"])
-    paths["main_effect_estimates_table"] = FINAL_ARTIFACTS["main_effect_estimates_table"]
-    robustness_report_table(robustness_window, FINAL_ARTIFACTS["robustness_summary_table"])
-    paths["robustness_summary_table"] = FINAL_ARTIFACTS["robustness_summary_table"]
-    write_subgroup_summary_figure(robustness_subgroup, FINAL_ARTIFACTS["subgroup_summary_figure"])
-    paths["subgroup_summary_figure"] = FINAL_ARTIFACTS["subgroup_summary_figure"]
+    paths["discovery_comparison_figure"] = final_artifacts["discovery_comparison_figure"]
+    main_effect_report_table(effect_estimates, final_artifacts["main_effect_estimates_table"])
+    paths["main_effect_estimates_table"] = final_artifacts["main_effect_estimates_table"]
+    robustness_report_table(robustness_window, final_artifacts["robustness_summary_table"])
+    paths["robustness_summary_table"] = final_artifacts["robustness_summary_table"]
+    write_subgroup_summary_figure(robustness_subgroup, final_artifacts["subgroup_summary_figure"])
+    paths["subgroup_summary_figure"] = final_artifacts["subgroup_summary_figure"]
 
-    _write_results_walkthrough(FINAL_ARTIFACTS["results_walkthrough"])
-    paths["results_walkthrough"] = FINAL_ARTIFACTS["results_walkthrough"]
-    _write_presentation_asset_plan(FINAL_ARTIFACTS["presentation_asset_plan"])
-    paths["presentation_asset_plan"] = FINAL_ARTIFACTS["presentation_asset_plan"]
+    _write_results_walkthrough(final_artifacts["results_walkthrough"])
+    paths["results_walkthrough"] = final_artifacts["results_walkthrough"]
+    _write_presentation_asset_plan(final_artifacts["presentation_asset_plan"])
+    paths["presentation_asset_plan"] = final_artifacts["presentation_asset_plan"]
 
-    print("Wrote final report assets:")
+    LOGGER.info("Wrote final report assets:")
     for name, path in paths.items():
-        print(f"- {name}: {path}")
+        LOGGER.info("- %s: %s", name, path)
+    return 0
+
+
+def _source_paths(args: argparse.Namespace) -> dict[str, Path]:
+    return {
+        "cohort_flow": args.processed_dir / "cohort_flow_table.csv",
+        "cohort": args.processed_dir / "oulad_analytic_cohort.parquet",
+        "discovery_comparison": args.processed_dir / "discovery_hand_dag_comparison.csv",
+        "discovery_stability": args.processed_dir / "discovery_stability_edges.csv",
+        "effect_estimates": args.processed_dir / "effect_estimates_main.csv",
+        "robustness_window": args.tables_dir / "robustness_window_threshold_summary.csv",
+        "robustness_subgroup": args.tables_dir / "robustness_subgroup_placebo_sensitivity_summary.csv",
+        "primary_dag_figure": args.figures_dir / "primary_dag.png",
+        "overlap_figure": args.figures_dir / "overlap_plot.png",
+    }
+
+
+def _final_artifacts(args: argparse.Namespace) -> dict[str, Path]:
+    return {
+        "cohort_flow_table": args.tables_dir / "cohort_flow.csv",
+        "treatment_prevalence_figure": args.figures_dir / "treatment_prevalence.png",
+        "discovery_comparison_figure": args.figures_dir / "discovery_comparison.png",
+        "main_effect_estimates_table": args.tables_dir / "main_effect_estimates.csv",
+        "robustness_summary_table": args.tables_dir / "robustness_summary.csv",
+        "subgroup_summary_figure": args.figures_dir / "subgroup_summary.png",
+        "results_walkthrough": args.reports_dir / "drafts" / "results_walkthrough.md",
+        "presentation_asset_plan": args.docs_dir / "presentation_asset_plan.md",
+    }
 
 
 def _require_inputs(paths: list[Path]) -> None:
@@ -204,4 +236,4 @@ Notes:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

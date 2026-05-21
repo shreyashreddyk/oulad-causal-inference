@@ -3,14 +3,20 @@
 from __future__ import annotations
 
 import argparse
+import logging
 from pathlib import Path
+from typing import Sequence
 
 from oulad_causal.config import DOCS_DIR, FIGURES_DIR, PROCESSED_DATA_DIR
 from oulad_causal.dag import ANALYTIC_COHORT_PATH
 from oulad_causal.discovery import DiscoveryConfig, run_discovery_pipeline
+from oulad_causal.logging_utils import add_log_level_argument, configure_logging
 
 
-def parse_args() -> argparse.Namespace:
+LOGGER = logging.getLogger(__name__)
+
+
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     """Parse command-line arguments."""
 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -23,13 +29,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--stability-reps", type=int, default=20)
     parser.add_argument("--stability-sample-size", type=int, default=3000)
     parser.add_argument("--skip-fci", action="store_true")
-    return parser.parse_args()
+    add_log_level_argument(parser)
+    return parser.parse_args(argv)
 
 
-def main() -> None:
+def main(argv: Sequence[str] | None = None) -> int:
     """Run the deterministic discovery pipeline."""
 
-    args = parse_args()
+    args = parse_args(argv)
+    configure_logging(args.log_level)
     paths = run_discovery_pipeline(
         DiscoveryConfig(
             cohort_path=args.cohort_path,
@@ -43,11 +51,11 @@ def main() -> None:
             skip_fci=args.skip_fci,
         )
     )
-    print("Wrote discovery artifacts:")
+    LOGGER.info("Wrote discovery artifacts:")
     for name, path in paths.items():
-        print(f"- {name}: {path}")
+        LOGGER.info("- %s: %s", name, path)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
-
+    raise SystemExit(main())

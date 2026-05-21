@@ -1,4 +1,4 @@
-.PHONY: install test lint audit validate-data build-cohort cohort discovery run-discovery estimation run-estimation robustness run-robustness assets clean
+.PHONY: install test lint audit validate-data build-cohort cohort discovery run-discovery estimation run-estimation robustness run-robustness build-assets assets health-check all clean
 
 PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 
@@ -40,6 +40,14 @@ run-robustness: robustness
 
 assets:
 	$(PYTHON) scripts/build_report_assets.py
+
+build-assets: assets
+
+health-check:
+	$(PYTHON) scripts/check_repo_health.py
+
+all:
+	$(PYTHON) scripts/run_pipeline.py
 
 clean:
 	find . -type d -name "__pycache__" -prune -exec rm -rf {} +
