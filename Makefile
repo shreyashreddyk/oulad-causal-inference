@@ -1,4 +1,4 @@
-.PHONY: install test lint audit validate-data build-cohort cohort discovery run-discovery estimation run-estimation robustness assets clean
+.PHONY: install test lint audit validate-data build-cohort cohort discovery run-discovery estimation run-estimation robustness run-robustness assets clean
 
 PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 
@@ -35,6 +35,8 @@ run-estimation: estimation
 
 robustness:
 	$(PYTHON) scripts/run_robustness.py
+
+run-robustness: robustness
 
 assets:
 	$(PYTHON) scripts/build_report_assets.py
