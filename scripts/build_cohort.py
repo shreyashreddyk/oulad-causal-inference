@@ -54,15 +54,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     cohort_path = processed_dir / "oulad_analytic_cohort.parquet"
     flow_path = processed_dir / "cohort_flow_table.csv"
     summary_path = processed_dir / "cohort_summary.json"
+    threshold_cutoffs_path = processed_dir / "treatment_threshold_cutoffs.csv"
 
     result.cohort.to_parquet(cohort_path, index=False)
     result.flow_table.to_csv(flow_path, index=False)
+    result.threshold_cutoffs.to_csv(threshold_cutoffs_path, index=False)
     summary = {
         **result.summary,
         "artifact_paths": {
             "analytic_cohort": str(cohort_path),
             "cohort_flow_table": str(flow_path),
             "cohort_summary": str(summary_path),
+            "treatment_threshold_cutoffs": str(threshold_cutoffs_path),
             "cohort_flow_plot": str(figures_dir / "cohort_flow.png"),
             "treatment_prevalence_plot": str(figures_dir / "treatment_prevalence.png"),
         },
@@ -84,6 +87,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     LOGGER.info("Wrote analytic cohort to %s", cohort_path)
     LOGGER.info("Wrote cohort flow table to %s", flow_path)
+    LOGGER.info("Wrote treatment threshold cutoffs to %s", threshold_cutoffs_path)
     LOGGER.info("Wrote cohort summary to %s", summary_path)
     LOGGER.info("Wrote cohort figures to %s", figures_dir)
     for name, path in dag_paths.items():

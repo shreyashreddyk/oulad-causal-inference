@@ -72,6 +72,17 @@ def test_build_cohort_main_returns_zero_with_mocked_pipeline(monkeypatch, tmp_pa
     fake_result = SimpleNamespace(
         cohort=pd.DataFrame({"id_student": [1]}),
         flow_table=pd.DataFrame({"stage": ["loaded"], "row_count": [1], "excluded_count": [0]}),
+        threshold_cutoffs=pd.DataFrame(
+            {
+                "code_module": ["AAA"],
+                "code_presentation": ["2013J"],
+                "window_days": [14],
+                "threshold_name": ["median"],
+                "quantile": [0.5],
+                "cutoff": [0.0],
+                "eligible_count": [1],
+            }
+        ),
         summary={"cohort_size": 1},
     )
     monkeypatch.setattr(build_cohort, "load_oulad_tables", lambda **_kwargs: {})
@@ -92,6 +103,7 @@ def test_build_cohort_main_returns_zero_with_mocked_pipeline(monkeypatch, tmp_pa
     )
 
     assert code == 0
+    assert (tmp_path / "processed" / "treatment_threshold_cutoffs.csv").exists()
 
 
 def test_stage_script_mains_return_zero_with_mocked_work(monkeypatch, tmp_path: Path) -> None:

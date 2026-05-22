@@ -34,6 +34,10 @@ def test_estimator_interface_returns_main_estimators() -> None:
     assert result.metadata["model_settings"]["seed"] == 245
     assert result.propensity_scores.between(0, 1).all()
     assert result.stabilized_weights.gt(0).all()
+    assert {"std_error", "ci_lower", "ci_upper", "uncertainty_method"}.issubset(result.effect_estimates.columns)
+    aipw = result.effect_estimates.loc[result.effect_estimates["estimator"] == "aipw"].iloc[0]
+    assert aipw["std_error"] >= 0
+    assert aipw["ci_lower"] <= aipw["estimate"] <= aipw["ci_upper"]
 
 
 def test_propensity_scores_are_clipped_for_computation_only() -> None:

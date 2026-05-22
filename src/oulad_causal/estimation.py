@@ -442,6 +442,10 @@ def nearest_neighbor_matching_estimate(
         "estimate": treated_mean - control_mean,
         "treated_mean": treated_mean,
         "control_mean": control_mean,
+        "std_error": np.nan,
+        "ci_lower": np.nan,
+        "ci_upper": np.nan,
+        "uncertainty_method": "",
         "n": int(len(treatment)),
         "matched_pairs": int(len(matched_treated)),
         "matched_retention": retention,
@@ -563,8 +567,8 @@ This summary is generated from the saved estimation artifacts. It should not be 
 
 ## Main Estimators
 
-| estimator | preferred | status | estimate | notes |
-| --- | --- | --- | ---: | --- |
+| estimator | preferred | status | estimate | 95% CI | SE | notes |
+| --- | --- | --- | ---: | ---: | ---: | --- |
 {_markdown_estimate_rows(effect_estimates)}
 
 Preferred main estimate: `{main_estimate["estimator"]}` with risk difference {float(main_estimate["estimate"]):.6f}.
@@ -576,6 +580,8 @@ Preferred main estimate: `{main_estimate["estimator"]}` with risk difference {fl
 - Overlap plot: `reports/figures/overlap_plot.png`.
 - Love plot: `reports/figures/love_plot_main.png`.
 - Effective sample size after stabilized weighting: {diagnostics["effective_sample_size"]:.2f}.
+- Propensity score range: {diagnostics["propensity_summary"]["all"]["min"]:.6f} to {diagnostics["propensity_summary"]["all"]["max"]:.6f}.
+- Propensity scores clipped for finite arithmetic: {diagnostics["propensity_scores_clipped_for_computation_count"]}.
 - Common support outside share: {diagnostics["common_support"]["outside_share"]:.6f}.
 - Maximum absolute SMD after weighting: {diagnostics["max_abs_smd_after_weighting"]:.6f}.
 - Poor overlap flag: {diagnostics["poor_overlap"]}.
@@ -610,8 +616,16 @@ def _effect_estimates(
 
     ra_treated = float(mu1.mean())
     ra_control = float(mu0.mean())
+    ra_scores = mu1 - mu0
     iptw_treated = _weighted_mean(outcome[treated], stabilized_weights[treated])
     iptw_control = _weighted_mean(outcome[control], stabilized_weights[control])
+    iptw_scores = (
+        len(treatment)
+        * (
+            treatment * stabilized_weights * outcome / stabilized_weights[treated].sum()
+            - (1 - treatment) * stabilized_weights * outcome / stabilized_weights[control].sum()
+        )
+    )
     aipw_scores = (
         mu1
         - mu0
@@ -631,6 +645,7 @@ def _effect_estimates(
             "estimate": ra_treated - ra_control,
             "treated_mean": ra_treated,
             "control_mean": ra_control,
+            **_uncertainty_fields(ra_scores, "empirical predicted-contrast score"),
             "n": int(len(treatment)),
             "matched_pairs": np.nan,
             "matched_retention": np.nan,
@@ -644,6 +659,7 @@ def _effect_estimates(
             "estimate": iptw_treated - iptw_control,
             "treated_mean": iptw_treated,
             "control_mean": iptw_control,
+            **_uncertainty_fields(iptw_scores, "empirical stabilized-IPTW contrast score"),
             "n": int(len(treatment)),
             "matched_pairs": np.nan,
             "matched_retention": np.nan,
@@ -657,6 +673,7 @@ def _effect_estimates(
             "estimate": aipw_estimate,
             "treated_mean": aipw_treated,
             "control_mean": aipw_control,
+            **_uncertainty_fields(aipw_scores, "empirical AIPW score"),
             "n": int(len(treatment)),
             "matched_pairs": np.nan,
             "matched_retention": np.nan,
@@ -785,6 +802,10 @@ def _skipped_matching_row(
         "estimate": np.nan,
         "treated_mean": np.nan,
         "control_mean": np.nan,
+        "std_error": np.nan,
+        "ci_lower": np.nan,
+        "ci_upper": np.nan,
+        "uncertainty_method": "",
         "n": np.nan,
         "matched_pairs": matched_pairs,
         "matched_retention": retention,
@@ -814,6 +835,18 @@ def _weighted_variance(values: np.ndarray, weights: np.ndarray, mean: float) -> 
     return float(np.sum(weights * np.square(values - mean)) / np.sum(weights))
 
 
+def _uncertainty_fields(scores: np.ndarray, method: str, *, z_value: float = 1.96) -> dict[str, float | str]:
+    scores = np.asarray(scores, dtype=float)
+    estimate = float(scores.mean())
+    std_error = float(scores.std(ddof=1) / np.sqrt(scores.shape[0])) if scores.shape[0] > 1 else np.nan
+    return {
+        "std_error": std_error,
+        "ci_lower": estimate - z_value * std_error if np.isfinite(std_error) else np.nan,
+        "ci_upper": estimate + z_value * std_error if np.isfinite(std_error) else np.nan,
+        "uncertainty_method": method,
+    }
+
+
 def _logit(values: np.ndarray) -> np.ndarray:
     values = np.clip(values, 1e-12, 1 - 1e-12)
     return np.log(values / (1.0 - values))
@@ -823,8 +856,14 @@ def _markdown_estimate_rows(effect_estimates: pd.DataFrame) -> str:
     rows = []
     for row in effect_estimates.to_dict(orient="records"):
         estimate = "" if pd.isna(row["estimate"]) else f"{float(row['estimate']):.6f}"
+        interval = (
+            ""
+            if pd.isna(row.get("ci_lower")) or pd.isna(row.get("ci_upper"))
+            else f"[{float(row['ci_lower']):.6f}, {float(row['ci_upper']):.6f}]"
+        )
+        std_error = "" if pd.isna(row.get("std_error")) else f"{float(row['std_error']):.6f}"
         notes = str(row["notes"]).replace("|", "\\|")
         rows.append(
-            f"| {row['estimator']} | {row['preferred']} | {row['status']} | {estimate} | {notes} |"
+            f"| {row['estimator']} | {row['preferred']} | {row['status']} | {estimate} | {interval} | {std_error} | {notes} |"
         )
     return "\n".join(rows)

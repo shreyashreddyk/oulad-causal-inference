@@ -42,6 +42,7 @@ EXPECTED_ARTIFACTS: dict[str, tuple[str, ...]] = {
         "data/processed/oulad_analytic_cohort.parquet",
         "data/processed/cohort_flow_table.csv",
         "data/processed/cohort_summary.json",
+        "data/processed/treatment_threshold_cutoffs.csv",
         "data/processed/primary_dag.yaml",
         "data/processed/dag_variable_availability.csv",
         "reports/figures/cohort_flow.png",
